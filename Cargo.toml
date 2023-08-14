@@ -1,5 +1,5 @@
 [package]
-name = "BeginnerWordsInForeignLanguages-API-Axum"
+name = "beginner_words_in_foreign_languages_api_axum"
 version = "0.1.0"
 edition = "2021"
 
