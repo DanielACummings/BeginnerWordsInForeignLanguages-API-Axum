@@ -1,10 +1,24 @@
-use axum::{Json, response::IntoResponse, Router, routing::get};
+mod handler;
+mod model;
+mod response;
+mod route;
+
+use axum::http::{
+    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+    HeaderValue, Method,
+};
+use route::create_router;
+use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new()
-        .route("/", get(display_language_options))
-        .route("/language/spanish", get(spanish));
+    let cors = CorsLayer::new()
+        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
+        .allow_credentials(true)
+        .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
+
+    let app = create_router().layer(cors);
 
     println!("🚀 Server started successfully");
     axum::Server::bind(&"0.0.0.0:8000".parse().unwrap())
@@ -13,36 +27,40 @@ async fn main() {
         .unwrap();
 }
 
-async fn display_language_options() -> impl IntoResponse {
-    const MESSAGE: &str =
-"Beginner words in foreign languages.
-URL options:
-    /spanish
-    /german
-    /romanian";
+// Made using code from
+// https://codevoweb.com/create-a-simple-api-in-rust-using-the-axum-framework/
+// as a template
 
-    let json_response = serde_json::json!({
-        "status": "success",
-        "message": MESSAGE
-    });
+// async fn display_language_options() -> impl IntoResponse {
+//     const MESSAGE: &str =
+// "Beginner words in foreign languages.
+// URL options:
+//     /spanish
+//     /german
+//     /romanian";
 
-    Json(json_response)
-}
+//     let json_response = serde_json::json!({
+//         "status": "success",
+//         "message": MESSAGE
+//     });
 
-async fn spanish() -> impl IntoResponse {
-    const MESSAGE: &str =
-"Hi/Hello: Hola
-Bye/Goodbye: Adios
-Yes: Sí
-No: No
-Please: Por favor
-Thank you: Gracias
-You're welcome: De nada";
+//     Json(json_response)
+// }
 
-    let json_response = serde_json::json!({
-        "status": "success",
-        "message": MESSAGE
-    });
+// async fn spanish() -> impl IntoResponse {
+//     const MESSAGE: &str =
+// "Hi/Hello: Hola
+// Bye/Goodbye: Adios
+// Yes: Sí
+// No: No
+// Please: Por favor
+// Thank you: Gracias
+// You're welcome: De nada";
 
-    Json(json_response)
-}
+//     let json_response = serde_json::json!({
+//         "status": "success",
+//         "message": MESSAGE
+//     });
+
+//     Json(json_response)
+// }
