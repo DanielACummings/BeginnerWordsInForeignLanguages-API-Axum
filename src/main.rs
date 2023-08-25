@@ -31,6 +31,9 @@ async fn main() {
 // https://codevoweb.com/create-a-simple-api-in-rust-using-the-axum-framework/
 // as a template
 
+// Run server & auto-update when code changes are made:
+// cargo watch -q -c -w src/ -x run
+
 // async fn display_language_options() -> impl IntoResponse {
 //     const MESSAGE: &str =
 // "Beginner words in foreign languages.

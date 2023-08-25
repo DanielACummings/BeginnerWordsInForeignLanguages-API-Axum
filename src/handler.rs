@@ -11,12 +11,35 @@ use crate::{
     response::{SingleTodoResponse, TodoData, TodoListResponse},
 };
 
-pub async fn health_checker_handler() -> impl IntoResponse {
-    const MESSAGE: &str = "Build Simple CRUD API in Rust using Axum";
-
+pub async fn route_options_handler() -> impl IntoResponse {
     let json_response = serde_json::json!({
         "status": "success",
-        "message": MESSAGE
+        "available_routes": {
+            "/todos": {
+                "GET": {
+                    "description": "List all todos",
+                    "parameters": "None"
+                },
+                "POST": {
+                    "description": "Create todo",
+                    "parameters": "title (unique), content"
+                }
+            },
+            "/todos/:id": {
+                "GET": {
+                    "description": "Get todo",
+                    "parameterers": "id"
+                },
+                "PATCH": {
+                    "description": "Update todo",
+                    "parameters": "id, title (optional), content (optional)"
+                },
+                "DELETE": {
+                    "description": "Delete todo",
+                    "parameters": "None"
+                }
+            },
+        }
     });
 
     Json(json_response)
@@ -63,8 +86,8 @@ pub async fn create_todo_handler(
 
     body.id = Some(uuid_id.to_string());
     body.completed = Some(false);
-    body.createdAt = Some(datetime);
-    body.updatedAt = Some(datetime);
+    body.created_at = Some(datetime);
+    body.updated_at = Some(datetime);
 
     let todo = body.to_owned();
 
@@ -132,8 +155,8 @@ pub async fn edit_todo_handler(
                 todo.content.to_owned()
             },
             completed: Some(completed),
-            createdAt: todo.createdAt,
-            updatedAt: Some(datetime),
+            created_at: todo.created_at,
+            updated_at: Some(datetime),
         };
         *todo = payload;
 

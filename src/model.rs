@@ -3,15 +3,14 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-#[allow(non_snake_case)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Todo {
     pub id: Option<String>,
     pub title: String,
     pub content: String,
     pub completed: Option<bool>,
-    pub createdAt: Option<DateTime<Utc>>,
-    pub updatedAt: Option<DateTime<Utc>>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub type DB = Arc<Mutex<Vec<Todo>>>;
@@ -26,7 +25,6 @@ pub struct QueryOptions {
     pub limit: Option<usize>,
 }
 
-#[allow(non_snake_case)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct UpdateTodoSchema {
     pub title: Option<String>,
