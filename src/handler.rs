@@ -56,7 +56,8 @@ pub async fn todos_list_handler(
     let limit = opts.limit.unwrap_or(10);
     let offset = (opts.page.unwrap_or(1) - 1) * limit;
 
-    let todos: Vec<Todo> = todos.clone().into_iter().skip(offset).take(limit).collect();
+    let todos: Vec<Todo>
+        = todos.clone().into_iter().skip(offset).take(limit).collect();
 
     let json_response = TodoListResponse {
         status: "success".to_string(),
@@ -73,10 +74,15 @@ pub async fn create_todo_handler(
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let mut vec = db.lock().await;
 
-    if let Some(todo) = vec.iter().find(|todo| todo.title == body.title) {
+    if let Some(todo) = vec.iter().find(
+        |todo| todo.title == body.title
+    ) {
         let error_response = serde_json::json!({
             "status": "fail",
-            "message": format!("Todo with title: '{}' already exists", todo.title),
+            "message": format!(
+                "Todo with title: '{}' already exists",
+                todo.title
+            ),
         });
         return Err((StatusCode::CONFLICT, Json(error_response)));
     }
@@ -108,7 +114,9 @@ pub async fn get_todo_handler(
     let id = id.to_string();
     let vec = db.lock().await;
 
-    if let Some(todo) = vec.iter().find(|todo| todo.id == Some(id.to_owned())) {
+    if let Some(todo) = vec.iter().find(
+        |todo| todo.id == Some(id.to_owned())
+    ) {
         let json_response = SingleTodoResponse {
             status: "success".to_string(),
             data: TodoData { todo: todo.clone() },
@@ -131,7 +139,9 @@ pub async fn edit_todo_handler(
     let id = id.to_string();
     let mut vec = db.lock().await;
 
-    if let Some(todo) = vec.iter_mut().find(|todo| todo.id == Some(id.clone())) {
+    if let Some(todo) = vec.iter_mut().find(
+        |todo| todo.id == Some(id.clone())
+    ) {
         let datetime = chrono::Utc::now();
         let title = body
             .title
@@ -141,7 +151,9 @@ pub async fn edit_todo_handler(
             .content
             .to_owned()
             .unwrap_or_else(|| todo.content.to_owned());
-        let completed = body.completed.unwrap_or(todo.completed.unwrap());
+        let completed = body.completed.unwrap_or(
+            todo.completed.unwrap()
+        );
         let payload = Todo {
             id: todo.id.to_owned(),
             title: if !title.is_empty() {
@@ -182,7 +194,9 @@ pub async fn delete_todo_handler(
     let id = id.to_string();
     let mut vec = db.lock().await;
 
-    if let Some(pos) = vec.iter().position(|todo| todo.id == Some(id.clone())) {
+    if let Some(pos) = vec.iter().position(
+        |todo| todo.id == Some(id.clone())
+    ) {
         vec.remove(pos);
         return Ok((StatusCode::NO_CONTENT, Json("")));
     }
