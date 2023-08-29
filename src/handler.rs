@@ -15,27 +15,27 @@ pub async fn route_options_handler() -> impl IntoResponse {
     let json_response = serde_json::json!({
         "status": "success",
         "available_routes": {
-            "/wordPairs": {
+            "/word-pairs": {
                 "GET": {
-                    "description": "List all wordPairs",
+                    "description": "List all word pairs",
                     "parameters": "None"
                 },
                 "POST": {
-                    "description": "Create wordPair",
+                    "description": "Create word pair",
                     "parameters": "title (unique), content"
                 }
             },
-            "/wordPairs/:id": {
+            "/word-pairs/:id": {
                 "GET": {
-                    "description": "Get wordPair",
+                    "description": "Get word pair",
                     "parameterers": "id"
                 },
                 "PATCH": {
-                    "description": "Update wordPair",
+                    "description": "Update word pair",
                     "parameters": "id, title (optional), content (optional)"
                 },
                 "DELETE": {
-                    "description": "Delete wordPair",
+                    "description": "Delete word pair",
                     "parameters": "None"
                 }
             },
@@ -45,43 +45,43 @@ pub async fn route_options_handler() -> impl IntoResponse {
     Json(json_response)
 }
 
-pub async fn wordPairs_list_handler(
+pub async fn word_pairs_list_handler(
     opts: Option<Query<QueryOptions>>,
     State(db): State<DB>,
 ) -> impl IntoResponse {
-    let wordPairs = db.lock().await;
+    let word_pairs = db.lock().await;
 
     let Query(opts) = opts.unwrap_or_default();
 
     let limit = opts.limit.unwrap_or(10);
     let offset = (opts.page.unwrap_or(1) - 1) * limit;
 
-    let wordPairs: Vec<WordPair>
-        = wordPairs.clone().into_iter().skip(offset).take(limit).collect();
+    let word_pairs: Vec<WordPair>
+        = word_pairs.clone().into_iter().skip(offset).take(limit).collect();
 
     let json_response = WordPairListResponse {
         status: "success".to_string(),
-        results: wordPairs.len(),
-        wordPairs,
+        results: word_pairs.len(),
+        word_pairs,
     };
 
     Json(json_response)
 }
 
-pub async fn create_wordPair_handler(
+pub async fn create_word_pair_handler(
     State(db): State<DB>,
     Json(mut body): Json<WordPair>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let mut vec = db.lock().await;
 
-    if let Some(wordPair) = vec.iter().find(
-        |wordPair| wordPair.title == body.title
+    if let Some(word_pair) = vec.iter().find(
+        |word_pair| word_pair.title == body.title
     ) {
         let error_response = serde_json::json!({
             "status": "fail",
             "message": format!(
                 "WordPair with title: '{}' already exists",
-                wordPair.title
+                word_pair.title
             ),
         });
         return Err((StatusCode::CONFLICT, Json(error_response)));
@@ -95,31 +95,31 @@ pub async fn create_wordPair_handler(
     body.created_at = Some(datetime);
     body.updated_at = Some(datetime);
 
-    let wordPair = body.to_owned();
+    let word_pair = body.to_owned();
 
     vec.push(body);
 
     let json_response = SingleWordPairResponse {
         status: "success".to_string(),
-        data: WordPairData { wordPair },
+        data: WordPairData { word_pair },
     };
 
     Ok((StatusCode::CREATED, Json(json_response)))
 }
 
-pub async fn get_wordPair_handler(
+pub async fn get_word_pair_handler(
     Path(id): Path<Uuid>,
     State(db): State<DB>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let id = id.to_string();
     let vec = db.lock().await;
 
-    if let Some(wordPair) = vec.iter().find(
-        |wordPair| wordPair.id == Some(id.to_owned())
+    if let Some(word_pair) = vec.iter().find(
+        |word_pair| word_pair.id == Some(id.to_owned())
     ) {
         let json_response = SingleWordPairResponse {
             status: "success".to_string(),
-            data: WordPairData { wordPair: wordPair.clone() },
+            data: WordPairData { word_pair: word_pair.clone() },
         };
         return Ok((StatusCode::OK, Json(json_response)));
     }
@@ -131,7 +131,7 @@ pub async fn get_wordPair_handler(
     Err((StatusCode::NOT_FOUND, Json(error_response)))
 }
 
-pub async fn edit_wordPair_handler(
+pub async fn edit_word_pair_handler(
     Path(id): Path<Uuid>,
     State(db): State<DB>,
     Json(body): Json<UpdateWordPairSchema>,
@@ -139,42 +139,42 @@ pub async fn edit_wordPair_handler(
     let id = id.to_string();
     let mut vec = db.lock().await;
 
-    if let Some(wordPair) = vec.iter_mut().find(
-        |wordPair| wordPair.id == Some(id.clone())
+    if let Some(word_pair) = vec.iter_mut().find(
+        |word_pair| word_pair.id == Some(id.clone())
     ) {
         let datetime = chrono::Utc::now();
         let title = body
             .title
             .to_owned()
-            .unwrap_or_else(|| wordPair.title.to_owned());
+            .unwrap_or_else(|| word_pair.title.to_owned());
         let content = body
             .content
             .to_owned()
-            .unwrap_or_else(|| wordPair.content.to_owned());
+            .unwrap_or_else(|| word_pair.content.to_owned());
         let favorite = body.favorite.unwrap_or(
-            wordPair.favorite.unwrap()
+            word_pair.favorite.unwrap()
         );
         let payload = WordPair {
-            id: wordPair.id.to_owned(),
+            id: word_pair.id.to_owned(),
             title: if !title.is_empty() {
                 title
             } else {
-                wordPair.title.to_owned()
+                word_pair.title.to_owned()
             },
             content: if !content.is_empty() {
                 content
             } else {
-                wordPair.content.to_owned()
+                word_pair.content.to_owned()
             },
             favorite: Some(favorite),
-            created_at: wordPair.created_at,
+            created_at: word_pair.created_at,
             updated_at: Some(datetime),
         };
-        *wordPair = payload;
+        *word_pair = payload;
 
         let json_response = SingleWordPairResponse {
             status: "success".to_string(),
-            data: WordPairData { wordPair: wordPair.clone() },
+            data: WordPairData { word_pair: word_pair.clone() },
         };
         Ok((StatusCode::OK, Json(json_response)))
     } else {
@@ -187,7 +187,7 @@ pub async fn edit_wordPair_handler(
     }
 }
 
-pub async fn delete_wordPair_handler(
+pub async fn delete_word_pair_handler(
     Path(id): Path<Uuid>,
     State(db): State<DB>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
@@ -195,7 +195,7 @@ pub async fn delete_wordPair_handler(
     let mut vec = db.lock().await;
 
     if let Some(pos) = vec.iter().position(
-        |wordPair| wordPair.id == Some(id.clone())
+        |word_pair| word_pair.id == Some(id.clone())
     ) {
         vec.remove(pos);
         return Ok((StatusCode::NO_CONTENT, Json("")));

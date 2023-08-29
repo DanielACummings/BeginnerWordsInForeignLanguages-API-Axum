@@ -5,12 +5,12 @@ use axum::{
 
 use crate::{
     handler::{
-        create_wordPair_handler,
-        delete_wordPair_handler,
-        edit_wordPair_handler,
-        get_wordPair_handler,
+        create_word_pair_handler,
+        delete_word_pair_handler,
+        edit_word_pair_handler,
+        get_word_pair_handler,
         route_options_handler,
-        wordPairs_list_handler,
+        word_pairs_list_handler,
     },
     model,
 };
@@ -22,13 +22,13 @@ pub fn create_router() -> Router {
         .route("/", get(route_options_handler))
         .route(
             "/word-pairs",
-            post(create_wordPair_handler).get(wordPairs_list_handler),
+            post(create_word_pair_handler).get(word_pairs_list_handler),
         )
         .route(
             "/word-pairs/:id",
-            get(get_wordPair_handler)
-                .patch(edit_wordPair_handler)
-                .delete(delete_wordPair_handler),
+            get(get_word_pair_handler)
+                .patch(edit_word_pair_handler)
+                .delete(delete_word_pair_handler),
         )
         .with_state(db)
 }

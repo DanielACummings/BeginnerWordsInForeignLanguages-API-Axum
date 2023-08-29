@@ -9,7 +9,7 @@ pub struct GenericResponse {
 
 #[derive(Serialize, Debug)]
 pub struct WordPairData {
-    pub wordPair: WordPair,
+    pub word_pair: WordPair,
 }
 
 #[derive(Serialize, Debug)]
@@ -22,5 +22,5 @@ pub struct SingleWordPairResponse {
 pub struct WordPairListResponse {
     pub status: String,
     pub results: usize,
-    pub wordPairs: Vec<WordPair>,
+    pub word_pairs: Vec<WordPair>,
 }
