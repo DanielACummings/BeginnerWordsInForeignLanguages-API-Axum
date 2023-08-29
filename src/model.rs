@@ -4,18 +4,18 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Todo {
+pub struct WordPair {
     pub id: Option<String>,
     pub title: String,
     pub content: String,
-    pub completed: Option<bool>,
+    pub favorite: Option<bool>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
 }
 
-pub type DB = Arc<Mutex<Vec<Todo>>>;
+pub type DB = Arc<Mutex<Vec<WordPair>>>;
 
-pub fn todo_db() -> DB {
+pub fn word_pair_db() -> DB {
     Arc::new(Mutex::new(Vec::new()))
 }
 
@@ -26,8 +26,8 @@ pub struct QueryOptions {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct UpdateTodoSchema {
+pub struct UpdateWordPairSchema {
     pub title: Option<String>,
     pub content: Option<String>,
-    pub completed: Option<bool>,
+    pub favorite: Option<bool>,
 }

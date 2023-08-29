@@ -7,35 +7,35 @@ use axum::{
 use uuid::Uuid;
 
 use crate::{
-    model::{QueryOptions, Todo, UpdateTodoSchema, DB},
-    response::{SingleTodoResponse, TodoData, TodoListResponse},
+    model::{QueryOptions, WordPair, UpdateWordPairSchema, DB},
+    response::{SingleWordPairResponse, WordPairData, WordPairListResponse},
 };
 
 pub async fn route_options_handler() -> impl IntoResponse {
     let json_response = serde_json::json!({
         "status": "success",
         "available_routes": {
-            "/todos": {
+            "/wordPairs": {
                 "GET": {
-                    "description": "List all todos",
+                    "description": "List all wordPairs",
                     "parameters": "None"
                 },
                 "POST": {
-                    "description": "Create todo",
+                    "description": "Create wordPair",
                     "parameters": "title (unique), content"
                 }
             },
-            "/todos/:id": {
+            "/wordPairs/:id": {
                 "GET": {
-                    "description": "Get todo",
+                    "description": "Get wordPair",
                     "parameterers": "id"
                 },
                 "PATCH": {
-                    "description": "Update todo",
+                    "description": "Update wordPair",
                     "parameters": "id, title (optional), content (optional)"
                 },
                 "DELETE": {
-                    "description": "Delete todo",
+                    "description": "Delete wordPair",
                     "parameters": "None"
                 }
             },
@@ -45,43 +45,43 @@ pub async fn route_options_handler() -> impl IntoResponse {
     Json(json_response)
 }
 
-pub async fn todos_list_handler(
+pub async fn wordPairs_list_handler(
     opts: Option<Query<QueryOptions>>,
     State(db): State<DB>,
 ) -> impl IntoResponse {
-    let todos = db.lock().await;
+    let wordPairs = db.lock().await;
 
     let Query(opts) = opts.unwrap_or_default();
 
     let limit = opts.limit.unwrap_or(10);
     let offset = (opts.page.unwrap_or(1) - 1) * limit;
 
-    let todos: Vec<Todo>
-        = todos.clone().into_iter().skip(offset).take(limit).collect();
+    let wordPairs: Vec<WordPair>
+        = wordPairs.clone().into_iter().skip(offset).take(limit).collect();
 
-    let json_response = TodoListResponse {
+    let json_response = WordPairListResponse {
         status: "success".to_string(),
-        results: todos.len(),
-        todos,
+        results: wordPairs.len(),
+        wordPairs,
     };
 
     Json(json_response)
 }
 
-pub async fn create_todo_handler(
+pub async fn create_wordPair_handler(
     State(db): State<DB>,
-    Json(mut body): Json<Todo>,
+    Json(mut body): Json<WordPair>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let mut vec = db.lock().await;
 
-    if let Some(todo) = vec.iter().find(
-        |todo| todo.title == body.title
+    if let Some(wordPair) = vec.iter().find(
+        |wordPair| wordPair.title == body.title
     ) {
         let error_response = serde_json::json!({
             "status": "fail",
             "message": format!(
-                "Todo with title: '{}' already exists",
-                todo.title
+                "WordPair with title: '{}' already exists",
+                wordPair.title
             ),
         });
         return Err((StatusCode::CONFLICT, Json(error_response)));
@@ -91,103 +91,103 @@ pub async fn create_todo_handler(
     let datetime = chrono::Utc::now();
 
     body.id = Some(uuid_id.to_string());
-    body.completed = Some(false);
+    body.favorite = Some(false);
     body.created_at = Some(datetime);
     body.updated_at = Some(datetime);
 
-    let todo = body.to_owned();
+    let wordPair = body.to_owned();
 
     vec.push(body);
 
-    let json_response = SingleTodoResponse {
+    let json_response = SingleWordPairResponse {
         status: "success".to_string(),
-        data: TodoData { todo },
+        data: WordPairData { wordPair },
     };
 
     Ok((StatusCode::CREATED, Json(json_response)))
 }
 
-pub async fn get_todo_handler(
+pub async fn get_wordPair_handler(
     Path(id): Path<Uuid>,
     State(db): State<DB>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let id = id.to_string();
     let vec = db.lock().await;
 
-    if let Some(todo) = vec.iter().find(
-        |todo| todo.id == Some(id.to_owned())
+    if let Some(wordPair) = vec.iter().find(
+        |wordPair| wordPair.id == Some(id.to_owned())
     ) {
-        let json_response = SingleTodoResponse {
+        let json_response = SingleWordPairResponse {
             status: "success".to_string(),
-            data: TodoData { todo: todo.clone() },
+            data: WordPairData { wordPair: wordPair.clone() },
         };
         return Ok((StatusCode::OK, Json(json_response)));
     }
 
     let error_response = serde_json::json!({
         "status": "fail",
-        "message": format!("Todo with ID: {} not found", id)
+        "message": format!("WordPair with ID: {} not found", id)
     });
     Err((StatusCode::NOT_FOUND, Json(error_response)))
 }
 
-pub async fn edit_todo_handler(
+pub async fn edit_wordPair_handler(
     Path(id): Path<Uuid>,
     State(db): State<DB>,
-    Json(body): Json<UpdateTodoSchema>,
+    Json(body): Json<UpdateWordPairSchema>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let id = id.to_string();
     let mut vec = db.lock().await;
 
-    if let Some(todo) = vec.iter_mut().find(
-        |todo| todo.id == Some(id.clone())
+    if let Some(wordPair) = vec.iter_mut().find(
+        |wordPair| wordPair.id == Some(id.clone())
     ) {
         let datetime = chrono::Utc::now();
         let title = body
             .title
             .to_owned()
-            .unwrap_or_else(|| todo.title.to_owned());
+            .unwrap_or_else(|| wordPair.title.to_owned());
         let content = body
             .content
             .to_owned()
-            .unwrap_or_else(|| todo.content.to_owned());
-        let completed = body.completed.unwrap_or(
-            todo.completed.unwrap()
+            .unwrap_or_else(|| wordPair.content.to_owned());
+        let favorite = body.favorite.unwrap_or(
+            wordPair.favorite.unwrap()
         );
-        let payload = Todo {
-            id: todo.id.to_owned(),
+        let payload = WordPair {
+            id: wordPair.id.to_owned(),
             title: if !title.is_empty() {
                 title
             } else {
-                todo.title.to_owned()
+                wordPair.title.to_owned()
             },
             content: if !content.is_empty() {
                 content
             } else {
-                todo.content.to_owned()
+                wordPair.content.to_owned()
             },
-            completed: Some(completed),
-            created_at: todo.created_at,
+            favorite: Some(favorite),
+            created_at: wordPair.created_at,
             updated_at: Some(datetime),
         };
-        *todo = payload;
+        *wordPair = payload;
 
-        let json_response = SingleTodoResponse {
+        let json_response = SingleWordPairResponse {
             status: "success".to_string(),
-            data: TodoData { todo: todo.clone() },
+            data: WordPairData { wordPair: wordPair.clone() },
         };
         Ok((StatusCode::OK, Json(json_response)))
     } else {
         let error_response = serde_json::json!({
             "status": "fail",
-            "message": format!("Todo with ID: {} not found", id)
+            "message": format!("WordPair with ID: {} not found", id)
         });
 
         Err((StatusCode::NOT_FOUND, Json(error_response)))
     }
 }
 
-pub async fn delete_todo_handler(
+pub async fn delete_wordPair_handler(
     Path(id): Path<Uuid>,
     State(db): State<DB>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
@@ -195,7 +195,7 @@ pub async fn delete_todo_handler(
     let mut vec = db.lock().await;
 
     if let Some(pos) = vec.iter().position(
-        |todo| todo.id == Some(id.clone())
+        |wordPair| wordPair.id == Some(id.clone())
     ) {
         vec.remove(pos);
         return Ok((StatusCode::NO_CONTENT, Json("")));
@@ -203,7 +203,7 @@ pub async fn delete_todo_handler(
 
     let error_response = serde_json::json!({
         "status": "fail",
-        "message": format!("Todo with ID: {} not found", id)
+        "message": format!("WordPair with ID: {} not found", id)
     });
 
     Err((StatusCode::NOT_FOUND, Json(error_response)))

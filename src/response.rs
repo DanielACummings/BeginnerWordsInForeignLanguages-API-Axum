@@ -1,4 +1,4 @@
-use crate::model::Todo;
+use crate::model::WordPair;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -8,19 +8,19 @@ pub struct GenericResponse {
 }
 
 #[derive(Serialize, Debug)]
-pub struct TodoData {
-    pub todo: Todo,
+pub struct WordPairData {
+    pub wordPair: WordPair,
 }
 
 #[derive(Serialize, Debug)]
-pub struct SingleTodoResponse {
+pub struct SingleWordPairResponse {
     pub status: String,
-    pub data: TodoData,
+    pub data: WordPairData,
 }
 
 #[derive(Serialize, Debug)]
-pub struct TodoListResponse {
+pub struct WordPairListResponse {
     pub status: String,
     pub results: usize,
-    pub todos: Vec<Todo>,
+    pub wordPairs: Vec<WordPair>,
 }
