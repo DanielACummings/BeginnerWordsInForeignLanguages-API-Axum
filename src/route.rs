@@ -22,7 +22,8 @@ pub fn create_router() -> Router {
         .route("/", get(route_options_handler))
         .route(
             "/word-pairs",
-            post(create_word_pair_handler).get(word_pairs_list_handler),
+            post(create_word_pair_handler)
+                .get(word_pairs_list_handler),
         )
         .route(
             "/word-pairs/:id",

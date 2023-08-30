@@ -6,8 +6,8 @@ use tokio::sync::Mutex;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct WordPair {
     pub id: Option<String>,
-    pub title: String,
-    pub content: String,
+    pub english_word: String,
+    pub foreign_word: String,
     pub favorite: Option<bool>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
@@ -27,7 +27,7 @@ pub struct QueryOptions {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct UpdateWordPairSchema {
-    pub title: Option<String>,
-    pub content: Option<String>,
+    pub english_word: Option<String>,
+    pub foreign_word: Option<String>,
     pub favorite: Option<bool>,
 }

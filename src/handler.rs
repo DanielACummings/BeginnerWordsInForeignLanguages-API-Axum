@@ -22,17 +22,17 @@ pub async fn route_options_handler() -> impl IntoResponse {
                 },
                 "POST": {
                     "description": "Create word pair",
-                    "parameters": "title (unique), content"
+                    "parameters": "English word (unique), foreign word"
                 }
             },
             "/word-pairs/:id": {
                 "GET": {
                     "description": "Get word pair",
-                    "parameterers": "id"
+                    "parameterers": "ID"
                 },
                 "PATCH": {
                     "description": "Update word pair",
-                    "parameters": "id, title (optional), content (optional)"
+                    "parameters": "ID, English word (optional), foreign word (optional)"
                 },
                 "DELETE": {
                     "description": "Delete word pair",
@@ -75,13 +75,13 @@ pub async fn create_word_pair_handler(
     let mut vec = db.lock().await;
 
     if let Some(word_pair) = vec.iter().find(
-        |word_pair| word_pair.title == body.title
+        |word_pair| word_pair.english_word == body.english_word
     ) {
         let error_response = serde_json::json!({
             "status": "fail",
             "message": format!(
-                "WordPair with title: '{}' already exists",
-                word_pair.title
+                "Word pair with English word, \"{}\" already exists",
+                word_pair.english_word
             ),
         });
         return Err((StatusCode::CONFLICT, Json(error_response)));
@@ -126,7 +126,7 @@ pub async fn get_word_pair_handler(
 
     let error_response = serde_json::json!({
         "status": "fail",
-        "message": format!("WordPair with ID: {} not found", id)
+        "message": format!("Word pair with ID: {} not found", id)
     });
     Err((StatusCode::NOT_FOUND, Json(error_response)))
 }
@@ -143,28 +143,28 @@ pub async fn edit_word_pair_handler(
         |word_pair| word_pair.id == Some(id.clone())
     ) {
         let datetime = chrono::Utc::now();
-        let title = body
-            .title
+        let english_word = body
+            .english_word
             .to_owned()
-            .unwrap_or_else(|| word_pair.title.to_owned());
-        let content = body
-            .content
+            .unwrap_or_else(|| word_pair.english_word.to_owned());
+        let foreign_word = body
+            .foreign_word
             .to_owned()
-            .unwrap_or_else(|| word_pair.content.to_owned());
+            .unwrap_or_else(|| word_pair.foreign_word.to_owned());
         let favorite = body.favorite.unwrap_or(
             word_pair.favorite.unwrap()
         );
         let payload = WordPair {
             id: word_pair.id.to_owned(),
-            title: if !title.is_empty() {
-                title
+            english_word: if !english_word.is_empty() {
+                english_word
             } else {
-                word_pair.title.to_owned()
+                word_pair.english_word.to_owned()
             },
-            content: if !content.is_empty() {
-                content
+            foreign_word: if !foreign_word.is_empty() {
+                foreign_word
             } else {
-                word_pair.content.to_owned()
+                word_pair.foreign_word.to_owned()
             },
             favorite: Some(favorite),
             created_at: word_pair.created_at,
@@ -180,7 +180,7 @@ pub async fn edit_word_pair_handler(
     } else {
         let error_response = serde_json::json!({
             "status": "fail",
-            "message": format!("WordPair with ID: {} not found", id)
+            "message": format!("Word pair with ID, \"{}\" not found", id)
         });
 
         Err((StatusCode::NOT_FOUND, Json(error_response)))
@@ -203,7 +203,7 @@ pub async fn delete_word_pair_handler(
 
     let error_response = serde_json::json!({
         "status": "fail",
-        "message": format!("WordPair with ID: {} not found", id)
+        "message": format!("Word pair with ID \"{}\" not found", id)
     });
 
     Err((StatusCode::NOT_FOUND, Json(error_response)))
