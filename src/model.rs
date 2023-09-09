@@ -3,20 +3,19 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-#[allow(non_snake_case)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Todo {
+pub struct WordPair {
     pub id: Option<String>,
-    pub title: String,
-    pub content: String,
-    pub completed: Option<bool>,
-    pub createdAt: Option<DateTime<Utc>>,
-    pub updatedAt: Option<DateTime<Utc>>,
+    pub english_word: String,
+    pub foreign_word: String,
+    pub favorite: Option<bool>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
-pub type DB = Arc<Mutex<Vec<Todo>>>;
+pub type DB = Arc<Mutex<Vec<WordPair>>>;
 
-pub fn todo_db() -> DB {
+pub fn word_pair_db() -> DB {
     Arc::new(Mutex::new(Vec::new()))
 }
 
@@ -26,10 +25,9 @@ pub struct QueryOptions {
     pub limit: Option<usize>,
 }
 
-#[allow(non_snake_case)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct UpdateTodoSchema {
-    pub title: Option<String>,
-    pub content: Option<String>,
-    pub completed: Option<bool>,
+pub struct UpdateWordPairSchema {
+    pub english_word: Option<String>,
+    pub foreign_word: Option<String>,
+    pub favorite: Option<bool>,
 }
